@@ -1,0 +1,23 @@
+# STM32CubeIDE specific
+.settings/
+Debug/
+Release/
+*.launch
+.project
+.cproject
+
+# Build artifacts
+*.o
+*.d
+*.su
+*.mk
+*.list
+*.map
+
+# Backup files
+*.bak
+*.tmp
+
+# Generated files
+.mxproject
+*ld
