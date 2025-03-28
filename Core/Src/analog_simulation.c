@@ -6,9 +6,9 @@
 #include "analog_simulation.h"
 
 // Private constants
-#define CURRENT_MAX_VALUE      33000    // 33A in mA
-#define TEMPERATURE_MAX_VALUE  3300     // 330.0°C in tenths of a degree
-#define PWM_MAX_VALUE          1023     // 10-bit PWM resolution (0-1023)
+#define CURRENT_MAX_INPUT      330     // 33.0 Amps
+#define TEMPERATURE_MAX_VALUE  330     // 330.0°C in tenths of a degree
+#define CURRENT_MAX_PWM        1023    // 10-bit PWM resolution
 
 // Store current PWM values
 static uint16_t current_pwm_values[3] = {0, 0, 0};
@@ -70,35 +70,27 @@ void Analog_Simulation_Stop(void) {
  * @param current_value Current value in milliamps (0-33000 mA)
  * @return 1 if successful, 0 otherwise
  */
-uint8_t Analog_SetCurrentSimulation(uint8_t light_index, uint16_t current_value) {
-    // Validate input parameters
-    if (light_index > 2 || current_value > CURRENT_MAX_VALUE) {
+uint8_t Analog_SetCurrentSimulation(uint8_t light_index, uint16_t input_value) {
+    // Validate input
+    if (light_index > 2 || input_value > CURRENT_MAX_INPUT) {
         return 0;
     }
 
-    // Scale current value to PWM value (0-1023)
-    // 0mA = 0, 33000mA = 1023
-    uint32_t pwm_value = (current_value * PWM_MAX_VALUE) / CURRENT_MAX_VALUE;
+    // Scale input to PWM range
+    // Example: 330 (33.0A) → 1023, 165 (16.5A) → 512
+    uint32_t pwm_value = (input_value * CURRENT_MAX_PWM) / (CURRENT_MAX_INPUT);
 
-    // Store PWM value
-    current_pwm_values[light_index] = pwm_value;
-
-    // Set PWM value for the corresponding timer channel
+    // Set PWM for specific channel
     switch (light_index) {
         case 0: // Light 1
             __HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_1, pwm_value);
             break;
-
         case 1: // Light 2
             __HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_3, pwm_value);
             break;
-
         case 2: // Light 3
             __HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_4, pwm_value);
             break;
-
-        default:
-            return 0;
     }
 
     return 1;
@@ -131,7 +123,7 @@ uint8_t Analog_SetTemperatureSimulation(uint8_t light_index, uint16_t temperatur
 
     // Scale temperature value to PWM value (0-1023)
     // 0°C = 0, 330.0°C = 1023
-    uint32_t pwm_value = (temperature_value * PWM_MAX_VALUE) / TEMPERATURE_MAX_VALUE;
+    uint32_t pwm_value = (temperature_value * CURRENT_MAX_PWM) / TEMPERATURE_MAX_VALUE;
 
     // Store PWM value
     temperature_pwm_values[light_index] = pwm_value;
