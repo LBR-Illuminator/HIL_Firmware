@@ -70,7 +70,6 @@ void SystemClock_Config(void);
   */
 int main(void)
 {
-
   /* USER CODE BEGIN 1 */
 
   /* USER CODE END 1 */
@@ -105,17 +104,14 @@ int main(void)
   // Initialize PWM capture
   PWM_Capture_Init();
 
-  // Start PWM generation for current and temperature simulation
-  HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_1);
-  HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_3);
-  HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_4);
-
-  HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
-  HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);
-  HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_3);
+  // Initialize analog simulation
+  Analog_Simulation_Init();
 
   // Start PWM input capture
   PWM_Capture_Start();
+
+  // Start analog simulation
+  Analog_Simulation_Start();
 
   // Start UART reception in interrupt mode
   HIL_StartUARTReception();

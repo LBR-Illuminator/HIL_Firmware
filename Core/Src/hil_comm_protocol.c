@@ -67,6 +67,24 @@ void HIL_ProcessSetCommand(const HILMessage* msg) {
                 response.cmd = RESPONSE_ERROR;
                 break;
 
+            case SIGNAL_CURRENT:
+                // Set current simulation value
+                if (Analog_SetCurrentSimulation(light_index, msg->value)) {
+                    response.cmd = RESPONSE_OK;
+                } else {
+                    response.cmd = RESPONSE_ERROR;
+                }
+                break;
+
+            case SIGNAL_TEMPERATURE:
+                // Set temperature simulation value
+                if (Analog_SetTemperatureSimulation(light_index, msg->value)) {
+                    response.cmd = RESPONSE_OK;
+                } else {
+                    response.cmd = RESPONSE_ERROR;
+                }
+                break;
+
             default:
                 response.cmd = RESPONSE_ERROR;
                 break;
@@ -79,7 +97,7 @@ void HIL_ProcessSetCommand(const HILMessage* msg) {
     response.checksum = HIL_CalculateChecksum(&response);
 
     // Send response
-    HIL_SendResponse(RESPONSE_OK, &response);
+    HIL_SendResponse(response.cmd, &response);
 }
 
 void HIL_ProcessGetCommand(const HILMessage* msg) {
@@ -104,17 +122,44 @@ void HIL_ProcessGetCommand(const HILMessage* msg) {
             case SIGNAL_PWM_INPUT:
                 // Retrieve PWM capture data for specific light
                 if (pwm_capture[light_index].capture_complete) {
-                    response.cmd = RESPONSE_OK;
-                    response.light = msg->light;
+                    response.cmd = msg->light;
                     response.function = SIGNAL_PWM_INPUT;
 
-                    // Return duty cycle (0-1000 range)
+                    // Return duty cycle (0-100 range)
                     response.value = pwm_capture[light_index].duty_cycle;
 
                     // Clear capture complete flag
                     pwm_capture[light_index].capture_complete = 0;
                 } else {
                     response.cmd = RESPONSE_ERROR;
+                }
+                break;
+
+            case SIGNAL_CURRENT:
+                // Return current PWM value
+                {
+                    uint16_t pwm_value = Analog_GetCurrentPWM(light_index);
+                    if (pwm_value != 0xFFFF) {
+                        response.cmd = msg->light;
+                        response.function = SIGNAL_CURRENT;
+                        response.value = pwm_value;
+                    } else {
+                        response.cmd = RESPONSE_ERROR;
+                    }
+                }
+                break;
+
+            case SIGNAL_TEMPERATURE:
+                // Return temperature PWM value
+                {
+                    uint16_t pwm_value = Analog_GetTemperaturePWM(light_index);
+                    if (pwm_value != 0xFFFF) {
+                        response.cmd = msg->light;
+                        response.function = SIGNAL_TEMPERATURE;
+                        response.value = pwm_value;
+                    } else {
+                        response.cmd = RESPONSE_ERROR;
+                    }
                 }
                 break;
 
