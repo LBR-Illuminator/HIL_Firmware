@@ -223,10 +223,9 @@ void HIL_SendResponse(HILResponseStatus status, const HILMessage* original_msg) 
         // Ensure markers are always set
         response.start = HIL_START_MARKER;
         response.end = HIL_END_MARKER;
-    } else {
-        // Set default error response if no message provided
-        response.cmd = status;
     }
+
+    response.cmd = status;
 
     // Recalculate checksum to ensure it's correct
     response.checksum = HIL_CalculateChecksum(&response);
